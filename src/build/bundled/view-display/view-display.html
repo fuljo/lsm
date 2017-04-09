@@ -1,0 +1,62 @@
+<html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/app-layout/app-box/app-box.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+
+
+
+</head><body><dom-module id="view-display">
+  <template>
+    <style>:host{display:block;}.page{height:100vh;--app-box-background-front-layer:{@apply (--layout-vertical);@apply (--layout-center-justified);};}@media (max-width: 600px){:host{font-size:14px;}}@media (min-width: 601px){}</style>
+
+    
+    <firebase-document id="database" path="/pages" data="{{pages}}"></firebase-document>
+
+    
+    
+
+    
+    <app-location route="{{route}}"></app-location>
+
+    
+    <app-route route="{{route}}" pattern="/display/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
+
+    <iron-pages id="pages" selected="[[page]]" attr-for-selected="name">
+      <app-box class="page" name="welcome">
+        <img background="" src="{{_imageUrl('welcome')}}" style="height:100%; width:100%">
+      </app-box>
+      <app-box class="page" name="band">
+        <img background="" src="{{_imageUrl('band')}}" style="height:100%; width:100%">
+      </app-box>
+      <app-box class="page" name="ceremony">
+        <img background="" src="{{_imageUrl('ceremony')}}" style="height:100%; width:100%">
+      </app-box>
+      <app-box class="page" name="games">
+        <img background="" src="{{_imageUrl('games')}}" style="height:100%; width:100%">
+      </app-box>
+      <app-box class="page" name="match">
+        <img background="" src="{{_imageUrl('match')}}" style="height:100%; width:100%">
+      </app-box>
+      <display-matches name="matches">
+      </display-matches>
+      <app-box class="page" name="mba">
+        <img background="" src="{{_imageUrl('mba')}}" style="height:100%; width:100%">
+      </app-box>
+      <app-box class="page" name="music">
+        <img background="" src="{{_imageUrl('music')}}" style="height:100%; width:100%">
+      </app-box>
+      <app-box class="page" name="schedule">
+        <img background="" src="{{_imageUrl('schedule')}}" style="height:100%; width:100%">
+      </app-box>
+      <app-box class="page" name="theme">
+        <img background="" src="{{_imageUrl('theme')}}" style="height:100%; width:100%">
+      </app-box>
+    </iron-pages>
+  </template>
+
+  <script>Polymer({is:"view-display",properties:{route:Object,routeData:Object,subroute:Object,enableSlideshow:{type:Boolean,value:!1},activeSlideshow:{type:Boolean,value:!1},pages:{type:Object,observer:"_pagesChanged"},activePages:{type:Object,value:[]},page:{type:String,reflectToAttribute:!0,observer:"_pageChanged",value:"welcome"},currentPageIndex:{type:Number,value:0}},observers:["_routePageChanged(routeData.page)"],_imageUrl:function(e){return e?"https://firebasestorage.googleapis.com/v0/b/lsm-feste.appspot.com/o/pages%2F"+e+".png?alt=media":null},_routePageChanged:function(e){"slideshow"===e?this.enableSlideshow=!0:this.page=e||"welcome"},_pageChanged:function(e){"matches"===e&&this.importHref(this.resolveUrl("display-"+e+".html"),null,null,!0)},_pagesChanged:function(e){if(e.hasOwnProperty("length")&&e.length>0){var t=[];e.forEach(function(e){e.active&&t.push(e)}),this.activePages=t,this.enableSlideshow&&!this.activeSlideshow&&(this.activeSlideshow=!0,this.async(this.nextPage,1e3*this.activePages[this.currentPageIndex].duration))}},nextPage:function(){this.currentPageIndex>=this.activePages.length-1?this.currentPageIndex=0:this.currentPageIndex++,this.set("page",this.activePages[this.currentPageIndex].name),this.async(this.nextPage,1e3*this.activePages[this.currentPageIndex].duration)}});</script>
+</dom-module>
+</body></html>

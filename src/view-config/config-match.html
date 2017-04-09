@@ -1,0 +1,283 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-styles/shadow.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+
+<link rel="import" href="config-match-element.html">
+
+<dom-module id="config-match">
+  <template>
+    <style>
+      :host {
+        display: block;
+        @apply(--layout-vertical);
+      }
+
+      .actions {
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+      }
+
+      .dialog-content {
+        @apply(--layout-vertical);
+      }
+
+      #container {
+        @apply(--layout-vertical);
+      }
+
+      #addByLevelButton {
+        width: 100%;
+      }
+
+      paper-button.inverted {
+        --paper-button: {
+          color: var(--accent-color);
+          background: var(--text-primary-color);
+        }
+      }
+
+      paper-menu.matches {
+        --paper-menu-selected-item: {
+          color: var(--default-primary-color);
+        }
+
+        --paper-menu-focused-item-after: {
+          background: var(--default-primary-color);
+        }
+
+        --paper-menu: {
+          width: 100%;
+        }
+      }
+
+      .match {
+        @apply(--layout-horizontal);
+        @apply(--layout-justified);
+      }
+
+      #addTemplate {
+        box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),
+                    0 1px 8px 0 rgba(0, 0, 0, 0.12),
+                    0 3px 3px -2px rgba(0, 0, 0, 0.4);
+        padding: 1.67em;
+        margin: 1em;
+        background: white;
+        @apply(--layout-vertical);
+        @apply(--layout-center);
+      }
+
+      .buttons {
+        @apply(--layout-horizontal);
+        @apply(--layout-end-justified);
+      }
+
+      /* Tablet+ */
+      @media (min-width: 601px) {
+
+        #addTemplate {
+          width: inherit;
+          max-width: 15em;
+        }
+
+      }
+
+
+    </style>
+
+    <!-- Firebase document to fetch matches -->
+    <firebase-document id="database" path="/matches" data="{{matches}}"></firebase-document>
+
+    <div id="container">
+
+    </div>
+
+    <div class="actions">
+      <paper-button id="addButton" raised on-tap="_addStep1"><iron-icon icon="add"></iron-icon>Apri partita</paper-button>
+    </div>
+
+    <template is="dom-if" if="{{addMode}}" restamp="true">
+      <div id="addTemplate">
+        <p>Seleziona il turno e la partita</p>
+
+        <paper-dropdown-menu class="dropdown" label="Turno">
+          <paper-menu attr-for-selected="level" class="dropdown-content" selected="{{selectedLevel}}">
+            <template is="dom-repeat" items="{{matches}}" index-as="index">
+              <paper-item level="[[index]]">{{_computeLevelName(index)}}</paper-item>
+            </template>
+          </paper-menu>
+        </paper-dropdown-menu>
+
+        <paper-button id="addByLevelButton" class="inverted" on-tap="_addByLevel"><iron-icon icon="add"></iron-icon>Apri tutte</paper-button>
+
+        <paper-menu class="dropdown-content matches" selected="{{selectedIndex}}">
+          <template is="dom-repeat" items="{{currentLevel}}" index-as="index">
+            <paper-item class="match">
+              <div class="time">{{item.time}}</div>
+              <div class="teams">{{item.team1}} - {{item.team2}}</div>
+            </paper-item>
+          </template>
+        </paper-menu>
+
+        <div class="buttons">
+          <paper-button class="inverted" on-tap="_cancelAddMode">Annulla</paper-button>
+          <paper-button dialog-confirm on-tap="_addStep2">Conferma</paper-button>
+        </div>
+      </div>
+    </template>
+
+    <!-- <paper-dialog id="addDialog">
+      <h2>Apri partita</h2>
+
+      <p>Seleziona il turno e la partita</p>
+
+      <paper-dialog-scrollable>
+        <paper-dropdown-menu class="dropdown" label="Turno">
+          <paper-menu attr-for-selected="level" class="dropdown-content" selected="{{selectedLevel}}">
+            <template is="dom-repeat" items="{{matches}}" index-as="index">
+              <paper-item level="[[index]]">{{_computeLevelName(index)}}</paper-item>
+            </template>
+          </paper-menu>
+        </paper-dropdown-menu>
+
+        <paper-menu class="dropdown-content matches" selected="{{selectedIndex}}">
+          <template is="dom-repeat" items="{{currentLevel}}" index-as="index">
+            <paper-item class="match">
+              <div class="teams">{{item.team1}} - {{item.team2}}</div>
+              <div class="time">{{item.time}}</div>
+            </paper-item>
+          </template>
+        </paper-menu>
+      </paper-dialog-scrollable>
+
+      <div class="buttons">
+        <paper-button class="inverted" dialog-dismiss>Annulla</paper-button>
+        <paper-button dialog-confirm on-tap="_addStep2">Conferma</paper-button>
+      </div>
+
+    </paper-dialog> -->
+
+    <!-- <config-match-element matches="{{matches}}" level="3" index="0" simple></config-match-element> -->
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'config-match',
+
+      properties: {
+        matches: Object,
+        selectedLevel: Number,
+        selectedIndex: Number,
+        currentLevel: {
+          type: Object,
+          computed: '_computeCurrentLevel(selectedLevel)'
+        },
+        addMode: {
+          type: Boolean,
+          value: false
+        }
+      },
+
+      listeners: {
+        'winner': '_injectWinner'
+      },
+
+      _computeLevelName: function (level) {
+        switch (level) {
+          case 0: return 'Finale'; break;
+          case 1: return 'Semifinali'; break;
+          case 2: return 'Quarti'; break;
+          case 3: return 'Ottavi'; break;
+          case 4: return 'Sedicesimi'; break;
+          case 5: return 'Trentaduesimi'; break;
+          default: return level;
+        }
+      },
+      _computeCurrentLevel: function (selectedLevel) {
+        if (this.matches.hasOwnProperty('length') && this.matches.length > 0) {
+          return this.matches[selectedLevel];
+        }
+      },
+
+      _addStep1: function () {
+        this.addMode = true;
+      },
+      _addStep2: function () {
+        if (typeof this.selectedLevel === 'number' && typeof this.selectedIndex === 'number') {
+          var match = this.create('config-match-element', {
+            simple: true,
+            level: this.selectedLevel,
+            index: this.selectedIndex
+          });
+
+          this.$$('#container').appendChild(match);
+          this.addMode = false;
+        }
+      },
+      _addByLevel: function () {
+        if (typeof this.selectedLevel === 'number') {
+          var match;
+          for (var i = 0; i < this.matches[this.selectedLevel].length; i++) {
+            match = this.create('config-match-element', {
+              simple: true,
+              level: this.selectedLevel,
+              index: i
+            });
+            this.$$('#container').appendChild(match);
+          }
+          this.addMode = false;
+        }
+      },
+      _cancelAddMode: function () {
+        this.addMode = false;
+      },
+
+      _injectWinner: function (e) {
+        if (e.detail.level > 0) {
+          var level = this.matches[e.detail.level-1];
+          var freeIndex = undefined;
+          var winner = e.detail.winner;
+
+          for (var i = 0; i < level.length; i++) {
+            if (freeIndex === undefined) {
+              if (level[i].team1 === '' || level[i].team1 === undefined) {
+                freeIndex = i*2;
+              } else if (level[i].team2 === '' || level[i].team2 === undefined) {
+                freeIndex = (i*2 + 1);
+              }
+            }
+
+            if (level[i].team1 === winner || level[i].team2 === winner) {
+              return;
+            }
+          }
+
+          if (freeIndex === undefined) {
+            return this.fire('error', 'Nessuna posizione libera per il vincitore!');
+          } else {
+            if (freeIndex % 2 === 0) {
+              // Then team1 is free
+              this.set('matches.'+(e.detail.level-1)+'.'+(freeIndex/2)+'.team1', winner);
+            } else {
+              // Then team2 is free
+              this.set('matches.'+(e.detail.level-1)+'.'+(Math.floor(freeIndex/2))+'.team2', winner);
+            }
+          }
+        }
+      }
+    });
+  </script>
+</dom-module>

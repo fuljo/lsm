@@ -1,0 +1,71 @@
+<html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-styles/shadow.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+
+<link rel="import" href="config-match-element.html">
+
+</head><body><dom-module id="config-match">
+  <template>
+    <style>:host{display:block;@apply (--layout-vertical);}.actions{@apply (--layout-horizontal);@apply (--layout-wrap);}.dialog-content{@apply (--layout-vertical);}#container{@apply (--layout-vertical);}paper-button.inverted{--paper-button:{color:var(--accent-color);background:var(--text-primary-color);};}paper-menu.matches{--paper-menu-selected-item:{color:var(--default-primary-color);};--paper-menu-focused-item-after:{background:var(--default-primary-color);};}.dropdown-content{width:auto;}.match{@apply (--layout-horizontal);@apply (--layout-justified);}</style>
+
+    
+    <firebase-document id="database" path="/matches" data="{{matches}}"></firebase-document>
+
+    <div id="container">
+
+    </div>
+
+    <div class="actions">
+      <paper-button id="addButton" raised="" on-tap="_addStep1"><iron-icon icon="add"></iron-icon>Apri partita</paper-button>
+    </div>
+
+    <paper-dialog id="addDialog" with-backdrop="">
+      <h2>Apri partita</h2>
+
+      <p>Seleziona il turno e la partita</p>
+
+      <paper-dialog-scrollable>
+        <paper-dropdown-menu class="dropdown" label="Turno">
+          <paper-menu attr-for-selected="level" class="dropdown-content" selected="{{selectedLevel}}">
+            <template is="dom-repeat" items="{{matches}}" index-as="index">
+              <paper-item level="[[index]]">{{_computeLevelName(index)}}</paper-item>
+            </template>
+          </paper-menu>
+        </paper-dropdown-menu>
+
+        <paper-menu class="dropdown-content matches" selected="{{selectedIndex}}">
+          <template is="dom-repeat" items="{{currentLevel}}" index-as="index">
+            <paper-item class="match">
+              <div class="teams">{{item.team1}} - {{item.team2}}</div>
+              <div class="time">{{item.time}}</div>
+            </paper-item>
+          </template>
+        </paper-menu>
+      </paper-dialog-scrollable>
+
+      <div class="buttons">
+        <paper-button class="inverted" dialog-dismiss="">Annulla</paper-button>
+        <paper-button dialog-confirm="" on-tap="_addStep2">Conferma</paper-button>
+      </div>
+
+    </paper-dialog>
+
+    
+
+  </template>
+
+  <script>Polymer({is:"config-match",properties:{matches:Object,selectedLevel:Number,selectedIndex:Number,currentLevel:{type:Object,computed:"_computeCurrentLevel(selectedLevel)"}},listeners:{winner:"_injectWinner"},_computeLevelName:function(e){switch(e){case 0:return"Finale";case 1:return"Semifinali";case 2:return"Quarti";case 3:return"Ottavi";case 4:return"Sedicesimi";case 5:return"Trentaduesimi";default:return e}},_computeCurrentLevel:function(e){return this.matches.hasOwnProperty("length")&&this.matches.length>0?this.matches[e]:void 0},_addStep1:function(){this.$.addDialog.open()},_addStep2:function(){if("number"==typeof this.selectedLevel&&"number"==typeof this.selectedIndex){var e=this.create("config-match-element",{simple:!0,matches:this.matches,level:this.selectedLevel,index:this.selectedIndex});this.$$("#container").appendChild(e)}},_injectWinner:function(e){if(e.detail.level>0){for(var t=this.matches[e.detail.level-1],i=void 0,n=e.detail.winner,r=0;r<t.length;r++)if(void 0===i&&(""===t[r].team1||void 0===t[r].team1?i=2*r:""!==t[r].team2&&void 0!==t[r].team2||(i=2*r+1)),t[r].team1===n||t[r].team2===n)return;if(void 0===i)return this.fire("error","Nessuna posizione libera per il vincitore!");i%2===0?this.set("matches."+(e.detail.level-1)+"."+i/2+".team1",n):this.set("matches."+(e.detail.level-1)+"."+Math.floor(i/2)+".team2",n)}}});</script>
+</dom-module>
+</body></html>

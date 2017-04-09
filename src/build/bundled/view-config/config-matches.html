@@ -1,0 +1,82 @@
+<html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-styles/shadow.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+
+<link rel="import" href="config-match-element.html">
+
+</head><body><dom-module id="config-matches">
+  <template>
+    <style>:host{display:block;@apply (--layout-vertical);}.actions{@apply (--layout-horizontal);@apply (--layout-wrap);}paper-button.inverted{--paper-button:{color:var(--accent-color);background:var(--text-primary-color);};}.match-buttons{@apply (--layout-vertical);@apply (--layout-center);}paper-fab[icon="add"]{--paper-fab:{color:var(--text-primary-color);background:#4CAF50;margin:1em;};--paper-fab-keyboard-focus-background:#4CAF50;}paper-fab[icon="remove"]{--paper-fab:{color:var(--text-primary-color);background:#F44336;margin:1em;};--paper-fab-keyboard-focus-background:#F44336;}.dropdown, .dropdown-content{margin-top:0;width:10em;}.container{@apply (--layout-vertical-reverse);}.level{@apply (--layout-vertical);}.matches{@apply (--layout-horizontal);@apply (--layout-center);@apply (--layout-wrap);}.match{@apply (--layout-vertical);box-shadow:0 3px 4px 0 rgba(0, 0, 0, 0.14),
+                    0 1px 8px 0 rgba(0, 0, 0, 0.12),
+                    0 3px 3px -2px rgba(0, 0, 0, 0.4);padding:1.67em;margin:1em;max-width:10em;background:white;}.team{@apply (--layout-horizontal);@apply (--layout-center);}.score{--paper-input-container:{text-align:right;};}@media (max-width: 600px){.matches{@apply (--layout-vertical);}.match-buttons{@apply (--layout-horizontal);}}</style>
+
+    
+    <firebase-document id="database" path="/matches" data="{{matches}}"></firebase-document>
+
+    <div class="actions">
+      <paper-button raised="" on-tap="_createStep1"><iron-icon icon="add"></iron-icon>Crea nuovo</paper-button>
+      <paper-button raised="" on-tap="_deleteStep1"><iron-icon icon="delete"></iron-icon>Elimina</paper-button>
+    </div>
+
+    <div class="container">
+      <template is="dom-repeat" items="{{matches}}" as="level" index-as="levelIndex">
+        <div class="level">
+          <h3>{{_computeLevelName(levelIndex)}}</h3>
+
+          <div class="matches">
+            <template is="dom-repeat" items="{{level}}" as="match" index-as="matchIndex">
+              <config-match-element match="{{match}}"></config-match-element>
+            </template>
+
+            <div class="match-buttons">
+              <paper-fab icon="add" on-tap="_addMatch"></paper-fab>
+              <paper-fab icon="remove" on-tap="_removeMatch"></paper-fab>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <paper-dialog id="createDialog" with-backdrop="">
+      <h2>Crea nuovo torneo</h2>
+
+      <p>Scegli il numero di turni: {{maxLevel}}</p>
+
+      <paper-slider id="maxLevel" pin="" snaps="" min="1" max="10" max-markers="10" step="1" value="{{maxLevel}}"></paper-slider>
+
+      <div class="buttons">
+        <paper-button class="inverted" dialog-dismiss="">Annulla</paper-button>
+        <paper-button dialog-confirm="" on-tap="_createStep2">Crea</paper-button>
+      </div>
+
+    </paper-dialog>
+
+    <paper-dialog id="deleteDialog" with-backdrop="">
+      <h2>Elimina torneo</h2>
+
+      <p>Sei sicuro di voler cancellare tutte le partite?</p>
+
+      <div class="buttons">
+        <paper-button class="inverted" dialog-dismiss="">Annulla</paper-button>
+        <paper-button dialog-confirm="" on-tap="_deleteStep2">Elimina</paper-button>
+      </div>
+
+    </paper-dialog>
+
+  </template>
+
+  <script>Polymer({is:"config-matches",properties:{matches:Object,maxLevel:{type:Number,value:1}},_computeLevelName:function(e){switch(e){case 0:return"Finale";case 1:return"Semifinali";case 2:return"Quarti";case 3:return"Ottavi";case 4:return"Sedicesimi";case 5:return"Trentaduesimi";default:return e}},_createStep1:function(){this.$.createDialog.open()},_createStep2:function(){for(var e=parseInt(this.maxLevel),t=[],l=0;e>l;l++){t[l]=[];for(var a=0;a<Math.pow(2,l);a++)t[l].push({team1:"",team2:"",time:"",score1:null,score2:null,status:"-1",level:l})}this.set("matches",t)},_deleteStep1:function(){this.$.deleteDialog.open()},_deleteStep2:function(){this.matches=[]},_addMatch:function(e){e.model.level&&e.model.push("level",{team1:"",team2:"",time:"",score1:null,score2:null,status:"-1",level:e.model.levelIndex})},_removeMatch:function(e){e.model.level&&e.model.pop("level")}});</script>
+</dom-module>
+</body></html>

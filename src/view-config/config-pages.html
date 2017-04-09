@@ -1,0 +1,69 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+
+<dom-module id="config-pages">
+  <template>
+    <style>
+      :host {
+        display: block;
+        @apply(--layout-vertical);
+      }
+
+      tr {
+        margin-bottom: 1em;
+        @apply(--layout-horizontal);
+      }
+
+      td {
+        @apply(--layout-horizontal);
+      }
+
+      .name {
+        padding: 8px;
+        min-width: 10em;
+      }
+
+      .duration > paper-input {
+        max-width: 3em;
+      }
+
+
+    </style>
+
+    <!-- Firebase document to fetch pages -->
+    <firebase-document id="database" path="/pages" data="{{pages}}"></firebase-document>
+
+    <table id="table">
+      <!-- Table header -->
+      <tr class="heder">
+        <td class="name">Nome</td>
+        <td style="padding: 8px 0">Durata</td>
+      </tr>
+
+      <template is="dom-repeat" items="{{pages}}" index-as="index">
+        <tr>
+          <td class="name"><paper-checkbox class="active" checked="{{item.active}}"></paper-checkbox>[[item.name]]</td>
+          <td class="duration"><paper-input no-label-float type="number" value="{{item.duration}}"></paper-input></td>
+        </tr>
+      </template>
+    </table>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'config-pages',
+
+      properties: {
+        pages: Object
+      }
+    });
+  </script>
+</dom-module>

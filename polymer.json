@@ -1,0 +1,13 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/lsm-app/lsm-app.html",
+  "fragments": [
+    "src/view-display/view-display.html",
+    "src/view-display/display-matches.html",
+    "src/view-config/view-config.html",
+    "src/view-config/config-pages.html",
+    "src/view-config/config-match.html",
+    "src/view-config/config-matches.html",
+    "src/view-config/config-match-element.html"
+  ]
+}

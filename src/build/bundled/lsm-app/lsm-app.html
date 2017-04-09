@@ -1,0 +1,29 @@
+<html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
+
+</head><body><dom-module id="lsm-app">
+  <template>
+    <style>:host{display:block;}</style>
+
+    
+    <firebase-app id="firebaseApp" auth-domain="lsm-feste.firebaseapp.com" database-url="https://lsm-feste.firebaseio.com/" storage-bucket="lsm-feste.appspot.com" api-key="AIzaSyDUrS8p2mH45QntxwTx9cMnGcp92LhE-Jw">
+    </firebase-app>
+
+    
+    <app-location route="{{route}}"></app-location>
+
+    
+    <app-route route="{{route}}" pattern="/:view" data="{{routeData}}" tail="{{subroute}}"></app-route>
+
+    <iron-pages selected="[[view]]" attr-for-selected="name">
+      <view-display name="display"></view-display>
+      <view-config name="config"></view-config>
+    </iron-pages>
+  </template>
+
+  <script>Polymer({is:"lsm-app",properties:{authDomain:{type:String,value:"lsm-feste.firebaseapp.com"},databaseUrl:{type:String,value:"https://lsm-feste.firebaseio.com/"},apiKey:{type:String,value:"AIzaSyDUrS8p2mH45QntxwTx9cMnGcp92LhE-Jw"},storageBucket:{type:String,value:"gs://lsm-feste.appspot.com"},route:Object,routeData:Object,subroute:Object,view:{type:String,reflectToAttribute:!0,observer:"_viewChanged",value:"display"}},observers:["_routeViewChanged(routeData.view)"],_routeViewChanged:function(e){this.view=e||"display"},_viewChanged:function(e){this.importHref(this.resolveUrl("../view-"+e+"/view-"+e+".html"),null,null,!0)}});</script>
+</dom-module>
+</body></html>

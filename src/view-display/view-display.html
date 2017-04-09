@@ -1,0 +1,184 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/app-layout/app-box/app-box.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+<!-- <link rel="import" href="../polymerfire/firebase-document.html"> -->
+<!-- <link rel="import" href="../polymerfire/firebase-storage.html"> -->
+
+<link rel="import" href="display-matches.html">
+
+<dom-module id="view-display">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+
+      .page {
+        height: 100vh;
+
+        --app-box-background-front-layer: {
+          @apply(--layout-vertical);
+          @apply(--layout-center-justified);
+        }
+      }
+
+      /* Small */
+      @media (max-width: 600px) {
+
+        :host {
+          font-size: 14px;
+        }
+
+      }
+
+      /* Tablet+ */
+      @media (min-width: 601px) {
+
+      }
+    </style>
+
+    <!-- Firebase document to fetch pages -->
+    <firebase-document id="database" path="/pages" data="{{pages}}"></firebase-document>
+
+    <!-- Firebase storage to fetch images -->
+    <!-- <firebase-storage id="storage" path="/pages"></firebase-storage> -->
+
+    <!-- app-location binds to the app's URL -->
+    <app-location route="{{route}}"></app-location>
+
+    <!-- this app-route manages the top-level routes -->
+    <app-route
+        route="{{route}}"
+        pattern="/display/:page"
+        data="{{routeData}}"
+        tail="{{subroute}}"></app-route>
+
+    <iron-pages id="pages" selected="[[page]]" attr-for-selected="name">
+      <app-box class="page" name="welcome">
+        <img background src="{{_imageUrl('welcome')}}" style="height:100%; width:100%;">
+      </app-box>
+      <app-box class="page" name="band">
+        <img background src="{{_imageUrl('band')}}" style="height:100%; width:100%;">
+      </app-box>
+      <app-box class="page" name="ceremony">
+        <img background src="{{_imageUrl('ceremony')}}" style="height:100%; width:100%;">
+      </app-box>
+      <app-box class="page" name="games">
+        <img background src="{{_imageUrl('games')}}" style="height:100%; width:100%;">
+      </app-box>
+      <app-box class="page" name="match">
+        <img background src="{{_imageUrl('match')}}" style="height:100%; width:100%;">
+      </app-box>
+      <display-matches name="matches">
+      </display-matches>
+      <app-box class="page" name="mba">
+        <img background src="{{_imageUrl('mba')}}" style="height:100%; width:100%;">
+      </app-box>
+      <app-box class="page" name="music">
+        <img background src="{{_imageUrl('music')}}" style="height:100%; width:100%;">
+      </app-box>
+      <app-box class="page" name="schedule">
+        <img background src="{{_imageUrl('schedule')}}" style="height:100%; width:100%;">
+      </app-box>
+      <app-box class="page" name="theme">
+        <img background src="{{_imageUrl('theme')}}" style="height:100%; width:100%;">
+      </app-box>
+    </iron-pages>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'view-display',
+
+      properties: {
+        route: Object,
+        routeData: Object,
+        subroute: Object,
+        enableSlideshow: {
+          type: Boolean,
+          value: false
+        },
+        activeSlideshow: {
+          type: Boolean,
+          value: false
+        },
+        pages: {
+          type: Object,
+          observer: '_pagesChanged'
+        },
+        activePages: {
+          type: Object,
+          value: []
+        },
+        page: {
+          type: String,
+          reflectToAttribute: true,
+          // observer: '_pageChanged',
+          value: 'welcome'
+        },
+        currentPageIndex: {
+          type: Number,
+          value: 0
+        }
+      },
+
+      observers: [
+        '_routePageChanged(routeData.page)'
+      ],
+
+      _imageUrl: function (page) {
+        if (page) {
+          // return this.$.storage.getDownloadURL(page+'.png')
+          return 'https://firebasestorage.googleapis.com/v0/b/lsm-feste.appspot.com/o/pages%2F'+page+'.png?alt=media';
+        } else {
+          return null;
+        }
+      },
+
+      _routePageChanged: function(page) {
+        if (page === 'slideshow') {
+          this.enableSlideshow = true;
+        } else {
+          this.page = page || 'welcome';
+        }
+      },
+      // _pageChanged: function(page) {
+      //   // load page import on demand.
+      //   if (page === 'matches') {
+      //     this.importHref(
+      //       this.resolveUrl('display-' + page + '.html'), null, null, true);
+      //   }
+      // },
+      _pagesChanged: function (pages) {
+        if (pages.hasOwnProperty('length') && pages.length > 0) {
+          var activePages = [];
+          // First shrink the array to delete unactive pages
+          pages.forEach(function (page) {
+            if (page.active) {
+              activePages.push(page);
+            }
+          });
+          this.activePages = activePages;
+          if (this.enableSlideshow && !this.activeSlideshow) {
+            this.activeSlideshow = true;
+            this.async(this.nextPage, this.activePages[this.currentPageIndex].duration * 1000);
+          }
+        }
+      },
+      nextPage: function () {
+        if (this.currentPageIndex >= (this.activePages.length - 1)) {
+          this.currentPageIndex=0;
+        } else {
+          this.currentPageIndex++;
+        }
+        this.set('page', this.activePages[this.currentPageIndex].name);
+        this.async(this.nextPage, this.activePages[this.currentPageIndex].duration * 1000);
+      }
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,112 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
+
+<link rel="import" href="../view-display/view-display.html">
+<link rel="import" href="../view-config/view-config.html">
+
+
+<dom-module id="lsm-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+
+      .container {
+        box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),
+                    0 1px 8px 0 rgba(0, 0, 0, 0.12),
+                    0 3px 3px -2px rgba(0, 0, 0, 0.4);
+        padding: 1.67em;
+        margin: 1em;
+        background: white;
+        background: #fafafa;
+        font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: #333;
+      }
+
+      .title {
+        text-align: center;
+        align-content: center
+      }
+
+      #logo {
+        height: 10em;
+        width: auto;
+      }
+    </style>
+
+    <!-- Firebase app element -->
+    <firebase-app id="firebaseApp"
+      auth-domain="lsm-feste.firebaseapp.com"
+      database-url="https://lsm-feste.firebaseio.com/"
+      storage-bucket="lsm-feste.appspot.com"
+      api-key="AIzaSyDUrS8p2mH45QntxwTx9cMnGcp92LhE-Jw">
+    </firebase-app>
+
+    <!-- app-location binds to the app's URL -->
+    <app-location route="{{route}}"></app-location>
+
+    <!-- this app-route manages the top-level routes -->
+    <app-route
+        route="{{route}}"
+        pattern="/:view"
+        data="{{routeData}}"
+        tail="{{subroute}}"></app-route>
+
+    <iron-pages selected="[[view]]" attr-for-selected="name">
+      <div name="home" class="container">
+        <div class="title">
+          <svg id="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 118 113.33"><defs><style>.cls-1{fill:#f5ba01;}.cls-2{fill:#f05015;}.cls-3{fill:#4aa7f4;}</style></defs><title>LSM_Logo_new</title><rect id="yellow_square" class="cls-1" x="27" y="43.33" width="70" height="70"/><rect id="red_square" class="cls-2" x="48" y="14.33" width="70" height="70"/><rect id="blue_square" class="cls-3" width="70" height="70"/></svg>
+          <h2>Liceo Scientifico e Musicale</h2>
+          <h1>Guglielmo Marconi Pesaro</h1>
+
+
+          <div>
+            <h2 id="please">Seleziona una pagina</h2>
+            <a href="/display/matches"><h3>Tabellone partite MBA</h3></a>
+            <a href="/display/schedule"><h3>Programma festa</h3></a>
+          </div>
+        </div>
+      </div>
+
+      <view-display name="display"></view-display>
+      <view-config name="config"></view-config>
+    </iron-pages>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'lsm-app',
+
+      properties: {
+        route: Object,
+        routeData: Object,
+        subroute: Object,
+        view: {
+          type: String,
+          reflectToAttribute: true,
+          // observer: '_viewChanged',
+          value: 'home'
+        }
+      },
+
+      observers: [
+        '_routeViewChanged(routeData.view)'
+      ],
+
+      _routeViewChanged: function(view) {
+        this.view = view || 'home';
+      },
+      // _viewChanged: function(view) {
+      //   load page import on demand.
+      //   this.importHref(
+      //     this.resolveUrl('../view-' + view +'/view-' + view + '.html'), null, null, true);
+      // }
+
+    });
+  </script>
+</dom-module>

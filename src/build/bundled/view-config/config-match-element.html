@@ -1,0 +1,111 @@
+<html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/paper-styles/shadow.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+
+</head><body><dom-module id="config-match-element">
+  <template>
+    <style>:host{display:block;}.actions{margin-top:1em;@apply (--layout-vertical);}.secondary{color:var(--secondary-text-color);}paper-button.inverted{--paper-button:{color:var(--accent-color);background:var(--text-primary-color);};}paper-fab{--paper-fab-keyboard-focus-background:var(--accent-color);}paper-fab.inverted{--paper-fab-mini:{color:var(--accent-color);background:var(--text-primary-color);};--paper-fab-keyboard-focus-background:var(--divider-color);}paper-fab.inverted.red{--paper-fab-mini:{color:#B71C1C;background:var(--text-primary-color);};}.dropdown, .dropdown-content{margin-top:0;width:inherit;}.match{@apply (--layout-vertical);box-shadow:0 3px 4px 0 rgba(0, 0, 0, 0.14),
+                    0 1px 8px 0 rgba(0, 0, 0, 0.12),
+                    0 3px 3px -2px rgba(0, 0, 0, 0.4);padding:1.67em;margin:1em;max-width:15em;background:white;}.horizontal{@apply (--layout-horizontal);@apply (--layout-justified);@apply (--layout-center);}.score{--paper-input-container:{text-align:right;};}</style>
+
+    <firebase-document id="database" data="{{match}}"></firebase-document>
+
+    <div class="match">
+      <template is="dom-if" if="[[simple]]" restamp="true">
+        <div class="title horizontal">
+          <h2>{{_computeLevelName(match.level)}}</h2>
+          <paper-icon-button icon="close" on-tap="_close"></paper-icon-button>
+        </div>
+
+        <div class="time horizontal secondary">
+          <div><iron-icon icon="schedule" style="margin-right: 0.25em"></iron-icon>{{match.time}}</div>{{_computeStatus(match.status, match.team1, match.team2)}}
+        </div>
+
+        <div class="team">
+          <div class="horizontal">
+            <h3>{{match.team1}}</h3>
+            <h3>{{match.score1}}</h3>
+          </div>
+          <div class="horizontal">
+            <template is="dom-if" if="{{_computeMatchStarted(match.status)}}" restamp="true">
+              <paper-fab class="inverted" label="+1" mini="" on-tap="_changeScoreTeam1_1"></paper-fab>
+              <paper-fab label="+2" mini="" on-tap="_changeScoreTeam1_2"></paper-fab>
+              <paper-fab class="inverted" label="+3" mini="" on-tap="_changeScoreTeam1_3"></paper-fab>
+              <paper-fab class="inverted red" label="-1" mini="" on-tap="_changeScoreTeam1_0"></paper-fab>
+            </template>
+          </div>
+        </div>
+
+        <div class="team">
+          <div class="horizontal">
+            <h3>{{match.team2}}</h3>
+            <h3>{{match.score2}}</h3>
+          </div>
+          <div class="horizontal">
+            <template is="dom-if" if="{{_computeMatchStarted(match.status)}}" restamp="true">
+              <paper-fab class="inverted" label="+1" mini="" on-tap="_changeScoreTeam2_1"></paper-fab>
+              <paper-fab label="+2" mini="" on-tap="_changeScoreTeam2_2"></paper-fab>
+              <paper-fab class="inverted" label="+3" mini="" on-tap="_changeScoreTeam2_3"></paper-fab>
+              <paper-fab class="inverted red" label="-1" mini="" on-tap="_changeScoreTeam2_0"></paper-fab>
+            </template>
+          </div>
+        </div>
+
+        <div class="actions">
+          <template is="dom-if" if="{{_computeMatchNotStarted(match.status)}}" restamp="true">
+            <paper-button on-tap="_startMatch">Inizia partita</paper-button>
+          </template>
+          <template is="dom-if" if="{{_computeMatchStarted(match.status)}}" restamp="true">
+            <paper-button on-tap="_endMatch">Concludi partita</paper-button>
+          </template>
+        </div>
+      </template>
+
+      <template is="dom-if" if="[[!simple]]" restamp="true">
+        <div class="title horizontal">
+          <h2>{{match.team1}} - {{match.team2}}</h2>
+        </div>
+
+        <div class="time horizontal secondary">
+          <paper-input label="Orario (HH:MM)" value="{{match.time}}" no-label-float="" pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])?$" auto-validate=""></paper-input>
+        </div>
+
+        <div class="team">
+          <div class="horizontal">
+            <paper-input label="Squadra 1" value="{{match.team1}}" no-label-float=""></paper-input>
+            <paper-input class="score" label="Punti" value="{{match.score1}}" type="number" no-label-float=""></paper-input>
+          </div>
+        </div>
+
+        <div class="team">
+          <div class="horizontal">
+            <paper-input label="Squadra 2" value="{{match.team2}}" no-label-float=""></paper-input>
+            <paper-input class="score" label="Punti" value="{{match.score2}}" type="number" no-label-float=""></paper-input>
+          </div>
+        </div>
+
+        <paper-dropdown-menu class="dropdown" label="Stato partita" no-label-float="">
+          <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{match.status}}">
+            <paper-item value="-1">Non iniziata</paper-item>
+            <paper-item value="0">In corso</paper-item>
+            <paper-item value="1">{{match.team1}} vincitore</paper-item>
+            <paper-item value="2">{{match.team2}} vincitore</paper-item>
+          </paper-menu>
+        </paper-dropdown-menu>
+      </template>
+    </div>
+
+  </template>
+
+  <script>Polymer({is:"config-match-element",properties:{matches:Object,level:Number,index:Number,match:{type:Object},simple:{type:Boolean,value:!1}},observers:["_changePath(level, index)"],_computeLevelName:function(e){switch(e){case 0:return"Finale";case 1:return"Semifinale";case 2:return"Quarto";case 3:return"Ottavo";case 4:return"Sedicesimo";case 5:return"Trentaduesimo";default:return e}},_computeStatus:function(e,t,c){switch(e=parseInt(e)){case-1:return"Non iniziata";case 0:return"In corso";case 1:return t;case 2:return c;default:return e}},_computeMatchStarted:function(e){return e=parseInt(e),0===e},_computeMatchNotStarted:function(e){return e=parseInt(e),-1===e},_startMatch:function(){this.set("match.score1","0"),this.set("match.score2","0"),this.set("match.status",0)},_endMatch:function(){var e=parseInt(this.match.score1),t=parseInt(this.match.score2);if(e>t)this.set("match.status","1"),this.fire("winner",{level:this.level,winner:this.match.team1});else if(t>e)this.set("match.status","2"),this.fire("winner",{level:this.level,winner:this.match.team2});else if(e===t)return this.fire("error","Pareggio, impossibile determinare un vincitore")},_close:function(){try{this.parentNode.removeChild(this)}catch(e){console.error(e)}},_changePath:function(e,t){"undefined"!==e&&"undefined"!=typeof t&&(this.$.database.path="/matches/"+e+"/"+t)},_changeScore:function(e,t){"number"==typeof t&&(1===e&&this.set("match.score1",(parseInt(this.match.score1)+t).toString()),2===e&&this.set("match.score2",(parseInt(this.match.score2)+t).toString()))},_changeScoreTeam1_0:function(){this._changeScore(1,-1)},_changeScoreTeam1_1:function(){this._changeScore(1,1)},_changeScoreTeam1_2:function(){this._changeScore(1,2)},_changeScoreTeam1_3:function(){this._changeScore(1,3)},_changeScoreTeam2_0:function(){this._changeScore(2,-1)},_changeScoreTeam2_1:function(){this._changeScore(2,1)},_changeScoreTeam2_2:function(){this._changeScore(2,2)},_changeScoreTeam2_3:function(){this._changeScore(2,3)}});</script>
+</dom-module>
+</body></html>
